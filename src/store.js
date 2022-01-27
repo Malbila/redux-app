@@ -25,6 +25,36 @@ export const pointScored = (player) => ({
   payload: { player: player },
 });
 
+export function autoplay(store) {
+  const isPlaying = store.getState().playing
+  if(isPlaying || store.getState().winner) {
+    //Déjà en train de jouer, on ne fait rien
+    return
+  }
+  // On indique que la partie est en cours
+  store.dispatch(setPlaying(true))
+  playNextPoint()
+  function playNextPoint() {
+    if(store.getState().playing === false) {
+      return
+    }
+    const time = 1000 + Math.floor(Math.random() *2000)
+    window.setTimeout(() => {
+      if(store.getState().playing === false) {
+        return
+      }
+      //si oui on marque un point aléatoire
+      const pointWinner = Math.random() > 0.5 ? "player1" : "player2"
+      store.dispatch(pointScored(pointWinner))
+      if(store.getState().winner) {
+        store.dispatch(setPlaying(false))
+        return
+      }
+      playNextPoint()
+    }, time)
+  }
+}
+
 function reducer(state = initialState, action) {
   if (action.type === "restart") {
     return produce(state, (draft) => {
@@ -40,17 +70,15 @@ function reducer(state = initialState, action) {
       draft.player2 = 0;
       draft.advantage = null;
       draft.winner = null;
-      draft.playing = true;
+      draft.playing = false;
     })
   }
   if(action.type === "setPlaying") {
-    if(state.winner) {
-      return state
-    }
     return produce(state, (draft) => {
       draft.playing = action.playing
     })
   }
+
   if (action.type === "pointScored") {
     const player = action.payload.player;
     const otherPlayer = player === "player1" ? "player2" : "player1";

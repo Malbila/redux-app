@@ -1,29 +1,19 @@
-import { useStore } from "react-redux";
-import { setPlaying, pointScored } from './store'
+import { useSelector, useStore } from "react-redux";
+import { autoplay } from './store'
+import { selectGameIsPlaying } from "./selectors"
 
 export function PlayPauseButton() {
     const store = useStore()
+    const playing = useSelector(selectGameIsPlaying)
 
     return (
         <button
         className="button"
         onClick={() => {
-                const isPlaying = store.getState().playing
-                if(isPlaying) {
-                    return
-                }
-                store.dispatch(setPlaying(true))
-                window.setTimeout(() => {
-                    if(store.getState().playing === false) {
-                        return
-                    }
-                    const pointWinner = Math.random() > 0.5 ? "player1" : "player2"
-                    store.dispatch(pointScored(pointWinner))
-                    store.dispatch(setPlaying(false))
-                }, 2000)
+            autoplay(store)
         }}
         >
-            Pause / Reprendre
+            {playing ? "Jeu en cours" : "Jouer"}
         </button>
     )
 }
